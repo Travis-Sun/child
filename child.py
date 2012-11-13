@@ -11,11 +11,6 @@ from random import randint
 from datetime import date
 
 NUM_DICT = {}
-REF_URL = 'http://beijing.homelink.com.cn/webregister/login.php'
-LIANJIA_URL = 'http://beijing.homelink.com.cn'
-COMMUNITY = []
-TO_MAILS = ['v-chuans@microsoft.com','act.of.war.sunzi@hotmail.com','bessie.yan@thomsonreuters.com']
-SAVEFILEPATH = r'D:\\work\\pyoutput\\bjallhourse\\%s%s.csv'
 #number of valid char
 CHAR_NUM = 4
 
@@ -136,7 +131,7 @@ def DownloadcodeForTrain(savefile='code.gif',url=r'http://epoint.pampers.com.cn/
     import urllib2
     req = urllib2.Request(url)
     #req.add_header("Cookie", cookie)
-    req.add_header("Referer", REF_URL)
+    req.add_header("Referer", 'http://epoint.pampers.com.cn')
     res_img = urllib2.urlopen(req)
     f = open(savefile, 'wb')
     f.write(res_img.read())
@@ -307,7 +302,7 @@ def LoadCodeFromTrain(fName='code.txt'):
 if __name__=='__main__':
     
     # for train to get valid code sample
-    Train = True
+    Train = False
     if Train:
         DownloadcodeForTrain()
         b_r = False
@@ -334,8 +329,4 @@ if __name__=='__main__':
             print code
             ie.textBoxSet('uxTextBoxCode',code)
             ie.formSubmit('form1')
-            
-            
-            
-            
-    
+                
