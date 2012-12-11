@@ -10,9 +10,16 @@ from Queue import Queue
 from random import randint
 from datetime import date
 
+
 NUM_DICT = {}
 #number of valid char
 CHAR_NUM = 4
+URL = r'http://epoint.pampers.com.cn/include/getCheckCode.aspx'
+ASPXAUTH = ''
+ASPNET_SESSIONID = ''
+USER = 'user'
+PWD = 'pwd'
+TO_MAILS = [emali_list,]
 
 
 
@@ -20,28 +27,44 @@ def LoginPageFromIE():
     '''
     login in the web page with username pwd and code
     '''
+    global USER
+    global PWD
     ie = PAMIE()
-    ie.navigate("https://epoint.pampers.com.cn/pages/rewards.aspx?r=5979") 
+    ie.navigate("http://epoint.pampers.com.cn/pages/rewards.aspx?r=5979")
+    #print ie.cookieGet()
     #time.sleep(10)
     #return ie
-    ie.textBoxSet('email','account')
-    ie.textBoxSet('password', 'pwd')
+    ie.textBoxSet('email',USER) #account
+    ie.textBoxSet('password', PWD) #pwd
     #Downloadcode(ie.cookieGet())
     #ie.textBoxSet('yzm',GetCode(CodeFilter()))
     #time.sleep(15)
     #ie.formSubmit('form1')
     ie.formSubmit('fmLogin')
-    #ie.navigate("https://epoint.pampers.com.cn/pages/rewards_detail.aspx?p1=149") 
-    ie.navigate("http://epoint.pampers.com.cn/pages/redeem.aspx?p1=149") 
-    if ie.textBoxExists('password'):
-        print 'fail to login in, please true again'
-        return None    
-    #ie.navigate('http://www.bjguahao.gov.cn/comm/kouqiang/ksyy.php?ksid=1040000&hpid=109')
+    #ie.navigate("http://epoint.pampers.com.cn/pages/redeem.aspx?p1=149") 
+    while ie.textBoxExists('password'):
+        print 'fail to login in, try again'
+        #ie.navigate("http://epoint.pampers.com.cn/pages/rewards.aspx?r=5979")
+        ie.textBoxSet('email',USER) #account
+        ie.textBoxSet('password', PWD) #pwd
+        ie.formSubmit('fmLogin')
+    ie.navigate("http://epoint.pampers.com.cn/pages/redeem.aspx?p1=149")        
+    
+    #print ie.cookieGet()
+    # prepare to in
+    ie.javaScriptExecute('javascript:alert("plese input the ASPXAUTH and ASP.net_Session")')
+    #print 'input ASPXAUTH value'
+    global ASPXAUTH
+    ASPXAUTH = raw_input('ASPXAUTH=')
+    #print 'input asp.net_sessionid value'
+    global ASPNET_SESSIONID
+    ASPNET_SESSIONID = raw_input('ASPNET_SESSIONID=')
+    #ie.navigate("http://epoint.pampers.com.cn/pages/rewards_detail.aspx?p1=149") 
+    #ie.navigate("http://epoint.pampers.com.cn/pages/redeem.aspx?p1=149")     
     #print ie.pageGetText()
     #ie.javaScriptExecute(SetDocumentMode())
     #ie.javaScriptExecute('document.documentMode="7";')
-    #ie.javaScriptExecute('document.write(document.getElementsByTagName("head"))')
-    #ie.javaScriptExecute('document.getElementsByTagName(\'head\')[0].appendChild(\'<meta http-equiv="X-UA-Compatible" content="IE=7">\');')
+    #ie.javaScriptExecute('document.write(document.getElementsByTagName("head"))')    
     return ie
 
 
@@ -51,7 +74,8 @@ def LoginPage():
     '''  
     
     # Get login web page
-    req = urllib2.Request('http://beijing.homelink.com.cn/webregister/login.php')
+    #req = urllib2.Request('http://epoint.pampers.com.cn/system/login2.aspx')
+    req = urllib2.Request('http://epoint.pampers.com.cn')
     opener = urllib2.urlopen(req)
     cookie = Cookie.SimpleCookie(opener.headers['set-cookie'])
 
@@ -60,25 +84,28 @@ def LoginPage():
     for v in cookie.values():
         ret += "%s=%s; " % (v.key, v.value)
     #print ret
+    #ret += "%s=%s; " %('.ASPXAUTH',ASPXAUTH)
+    #ret += "%s=%s; " %('ASP.NET_SessionId',ASPNET_SESSIONID)
 
     # build headers
-    headers = { 'Referer' : 'http://beijing.homelink.com.cn',
+    headers = { 'Referer' : 'http://epoint.pampers.com.cn/',
                 'Cookie' : ret,
                 'User-Agent' : 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)'}
 
     # get the valicode
-    Downloadcode(headers)
-    valicode = GetCode(CodeFilter())
+    #Downloadcode(headers)
+    #valicode = GetCode(CodeFilter())
     #print valicode
 
     # build Post data
-    login_data = urllib.urlencode({'username' : '11111@qq.com',
-                                   'password' : '1111',
-                                   'validateCode': valicode,
-                                   'dologin' : '登录'
+    login_data = urllib.urlencode({'email' : USER,
+                                   'password' : PWD,
+                                   'fromweb': 'ECRM',
+                                   'url' : 'https://epoint.pampers.com.cn/system/action.aspx?u=http%3a%2f%2fepoint.pampers.com.cn%2findex.aspx%3fr%3d634902949235714406'
                                    })
 
     # POST Login web page
+    req = urllib2.Request('http://epoint.pampers.com.cn/system/login2.aspx')
     req.add_data(login_data)
     for (key, val) in headers.items():
         req.add_header(key,val)
@@ -86,13 +113,13 @@ def LoginPage():
     content = resp.read()
     if content[:3]==codecs.BOM_UTF8:
         content = content[3:]    
-    #print content
+    print content
     #if content contains info "179095423", it's successful.
     #you are now logged in and can access "members only" content.
     #when your all done be sure to close it
     opener.close()
     resp.close()
-    return headers
+    #return headers
 
 
 
@@ -110,18 +137,34 @@ def OpenWebPage(url,headers):
     return content
 
 
-def Downloadcode(cookie,savefile='code.gif',url=r'http://epoint.pampers.com.cn/include/getCheckCode.aspx'):
+def Downloadcode(cookie,savefile='code.gif',url=URL):
     '''
     download code image from url
     '''
     import urllib2
+    #url = url + '?ticks=' + str(int(time.time()*1000))
+    #URL = url
+    #print url
+    global ASPXAUTH
+    global ASPNET_SESSIONID
+    #print ASPXAUTH,'\n', ASPNET_SESSIONID
+    #print cookie
+    cookie += "; %s=%s" %('.ASPXAUTH',ASPXAUTH)
+    cookie += "; %s=%s" %('ASP.NET_SessionId',ASPNET_SESSIONID)
+    #print cookie
     req = urllib2.Request(url)
     req.add_header("Cookie",cookie)
     req.add_header("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; Zune 4.7; MS-RTC LM 8; InfoPath.3; BRI/2)")
-    res_img = urllib2.urlopen(req)
-    f = open(savefile, 'wb')
-    f.write(res_img.read())
-    f.close()
+    try:
+        res_img = urllib2.urlopen(req)
+        f = open(savefile, 'wb')
+        f.write(res_img.read())
+        f.close()
+    except:
+        res_img = urllib2.urlopen(req)
+        f = open(savefile, 'wb')
+        f.write(res_img.read())
+        f.close()        
 
 
 def DownloadcodeForTrain(savefile='code.gif',url=r'http://epoint.pampers.com.cn/include/getCheckCode.aspx'):
@@ -200,7 +243,7 @@ def GetPreImage(im):
     '''
     import Image, ImageDraw 
     w,h = im.size
-    print w, ' ', h
+    #print w, ' ', h
     data = []
     #im = img.load()
     im.save('precode.png')
@@ -296,13 +339,61 @@ def LoadCodeFromTrain(fName='code.txt'):
             #print key
             #print pickle.loads(eval(key))
             NUM_DICT[key] = pickle.loads(eval(val))
+
+def SendMail(data,subject):
+    global TO_MAILS
+    import smtplib
+    from email.MIMEText import MIMEText
+    fromaddr = 'sc369963@gmail.com'  
+    toaddrs  = TO_MAILS
+
+    msg = MIMEText(data, 'plain','gb2312')
+    msg['Subject'] = subject
+    msg['From'] = fromaddr
+    msg['To'] = ";".join(toaddrs)
+    #msg = 'There was a terrible error that occured and I wanted you to know!'  
+  
+  
+    # Credentials (if needed)  
+    username = 'sc369963@gmail.com'  
+    password = 'sc369963'  
+    
+    # The actual mail send  
+    server = smtplib.SMTP('smtp.gmail.com:587')  
+    server.starttls()  
+    server.login(username,password)  
+    server.sendmail(fromaddr, toaddrs, msg.as_string())  
+    server.quit()
+
             
 
+def Submit(ie):
+    b_r = False
+    code = ''
+    
+    ie.navigate("http://epoint.pampers.com.cn/pages/redeem.aspx?p1=149") 
+    while not b_r:
+        # to complete with ?ticket=value, must be same ticket to submit.
+        #ie.linkClick('regCodeImg')
+        #link = ie.linkGetValue('regCodeImg','src')
+        #print link
+        Downloadcode(ie.cookieGet())
+        (b_r, data) = GetNumFromCode(GetPreImage(CodeFilter()))
+        if not b_r: continue
+        code = GetCode(data)
+    #print code
+    ie.textBoxSet('uxTextBoxCode',code)
+    #time.sleep(10)
+    #ie.formSubmit('form1')
+    ie.buttonImageClick('ImgbtnRedeem')
+    return ie
+        
             
 if __name__=='__main__':
     
     # for train to get valid code sample
     Train = False
+    #LoginPageFromIE()
     if Train:
         DownloadcodeForTrain()
         b_r = False
@@ -315,18 +406,25 @@ if __name__=='__main__':
         
     if not Train:
         # logon
-        b_r = False
-        code = ''
         ie = LoginPageFromIE()
-        if ie!=None:
-            while not b_r:
-                # to complete with ?ticket=value, must be same ticket to submit.
-                link = ie.linksGetValue('','')
-                Downloadcode(ie.cookieGet(),url=link)
-                (b_r, data) = GetNumFromCode(GetPreImage(CodeFilter()))
-                if not b_r: continue
-                code = GetCode(data)
-            print code
-            ie.textBoxSet('uxTextBoxCode',code)
-            ie.formSubmit('form1')
+        ie = Submit(ie)
+        bTry = True
+        while bTry:
+            print 'try again.--', time.strftime('%Y-%m-%d %H:%M:%S')
+            Hour_now = time.strftime('%H')
+            if int(Hour_now)> 18 or int(Hour_now) < 8:
+                time.sleep(1800)
+            ie = Submit(ie)
+            localURL = ie.locationURL()
+            if localURL.find('error')>0 or localURL.find('redeem')>0:
+                bTry = True
+            else:
+                bTry = False
+            #ie.elementExists('span','id','Lerror')
+        print 'OK'
+        #SendMail('http://epoint.pampers.com.cn','have book the customer')
+        ie.quit()
+        
+            
+            
                 
