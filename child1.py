@@ -9,8 +9,7 @@ from time import ctime, sleep
 from Queue import Queue
 from random import randint
 from datetime import date
-import threading
-from random import randrange
+
 
 NUM_DICT = {}
 #number of valid char
@@ -20,9 +19,7 @@ ASPXAUTH = ''
 ASPNET_SESSIONID = ''
 USER = 'tinny414@sohu.com'
 PWD = 'Zh0uwei!'
-TO_MAILS = ['sc369963@gmail.com',]
-NTHREAD = 10
-NIE = 3
+TO_MAILS = ['v-chuans@microsoft',]
 
 
 
@@ -101,8 +98,8 @@ def LoginPage():
     #print valicode
 
     # build Post data
-    login_data = urllib.urlencode({'email' : USER,
-                                   'password' : PWD,
+    login_data = urllib.urlencode({'email' : 'tinny414@sohu.com',
+                                   'password' : 'Zh0uwei!',
                                    'fromweb': 'ECRM',
                                    'url' : 'https://epoint.pampers.com.cn/system/action.aspx?u=http%3a%2f%2fepoint.pampers.com.cn%2findex.aspx%3fr%3d634902949235714406'
                                    })
@@ -390,109 +387,7 @@ def Submit(ie):
     #ie.formSubmit('form1')
     ie.buttonImageClick('ImgbtnRedeem')
     return ie
-
-def ThreadFunction(threadID):
-    ie = PAMIE()
-    ie = Submit(ie)
-    bTry = True
-    while bTry:
-        print 'id:%d try again.--%s' %(threadID,time.strftime('%Y-%m-%d %H:%M:%S'))
-        Hour_now = time.strftime('%H')
-        if int(Hour_now)> 18 or int(Hour_now) < 8:
-            time.sleep(1800)
-            ie = Submit(ie)
-            localURL = ie.locationURL()
-            if localURL.find('error')>0 or localURL.find('redeem')>0:
-                bTry = True
-            else:
-                bTry = False
-            #ie.elementExists('span','id','Lerror')
-    print 'id:%d is OK' % threadID
-    #SendMail('http://epoint.pampers.com.cn','have book the customer')
-    ie.quit()
-
-def submit2(ie, code):
-    b_r = False
-    code = ''    
-    
-    while not b_r:
-        # to complete with ?ticket=value, must be same ticket to submit.
-        #ie.linkClick('regCodeImg')
-        #link = ie.linkGetValue('regCodeImg','src')
-        #print link
-        Downloadcode(ie.cookieGet())
-        (b_r, data) = GetNumFromCode(GetPreImage(CodeFilter()))
-        if not b_r: continue
-        code = GetCode(data)
-    #print code
-    ie.textBoxSet('uxTextBoxCode',code)
-    #time.sleep(10)
-    #ie.formSubmit('form1')
-    ie.buttonImageClick('ImgbtnRedeem')
-    return ie
-
-def initSubmit2(N):
-    ieclass = []
-    threads = []
-    def ThreadFunc():
-        ie = PAMIE()
-        ie.navigate("http://epoint.pampers.com.cn/pages/redeem.aspx?p1=149")
-        ieclass.append(ie)
-    for i in range(N):
-        t = threading.Thread(target=ThreadFunc)
-        threads.append(t)
-
-    for i in range(N):
-        threads[i].start()
-
-    for i in range(N):
-        threads[i].join()
-
-    return ieclass
-
-def validCode(ie):
-    b_r = False
-    code = ''
-    while not b_r:
-        # to complete with ?ticket=value, must be same ticket to submit.
-        #ie.linkClick('regCodeImg')
-        #link = ie.linkGetValue('regCodeImg','src')
-        #print link
-        Downloadcode(ie.cookieGet())
-        (b_r, data) = GetNumFromCode(GetPreImage(CodeFilter()))
-        if not b_r: continue
-        code = GetCode(data)
-    return code
-    
-def fillCode(ieclass, code):
-    threads = []
-    def ThreadFunc(ie, code):
-        ie.textBoxSet('uxTextBoxCode',code)
-    for ie in ieclass:
-        t = threading.Thread(target=ThreadFunc, args=(ie,code))
-        threads.append(t)
-    for i in range(len(ieclass)):
-        threads[i].start()
-
-    for i in range(len(ieclass)):
-        threads[i].join()
-
         
-def submitThread(ieclass):
-    threads = []
-    def ThreadFunc(ie):
-        ie.buttonImageClick('ImgbtnRedeem')
-        time.sleep(60)
-        ie.quit()
-
-    for ie in ieclass:
-        t = threading.Thread(target=ThreadFunc, args=(ie,))
-        threads.append(t)
-    for i in range(len(ieclass)):
-        threads[i].start()        
-        time.sleep(10)
-
-                
             
 if __name__=='__main__':
     
@@ -509,7 +404,7 @@ if __name__=='__main__':
         else:
             print 'failed'
         
-    if False and not Train:
+    if not Train:
         # logon
         ie = LoginPageFromIE()
         ie = Submit(ie)
@@ -529,18 +424,7 @@ if __name__=='__main__':
         print 'OK'
         #SendMail('http://epoint.pampers.com.cn','have book the customer')
         ie.quit()
-    # run thread
-    if False:
-        ie = LoginPageFromIE()
-        for i in range(NTHREAD):
-            p = threading.Thread(target=ThreadFunction, args=(i,))
-            p.start()
-            time.sleep(110/NTHREAD)
-    ie = LoginPageFromIE()
-    print NIE
-    while(True):
-        ieclass = initSubmit2(NIE)
-        code  = validCode(ie)
-        fillCode(ieclass,code)
-        submitThread(ieclass)
-    
+        
+            
+            
+                

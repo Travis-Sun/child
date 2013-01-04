@@ -24,6 +24,32 @@ TO_MAILS = ['sc369963@gmail.com',]
 NTHREAD = 10
 NIE = 3
 
+import logging
+
+# 创建一个logger
+logger = logging.getLogger('mylogger')
+logger.setLevel(logging.DEBUG)
+
+# 创建一个handler，用于写入日志文件
+fh = logging.FileHandler('test.log')
+fh.setLevel(logging.DEBUG)
+
+# 再创建一个handler，用于输出到控制台
+#ch = logging.StreamHandler()
+#ch.setLevel(logging.DEBUG)
+
+# 定义handler的输出格式
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+#ch.setFormatter(formatter)
+
+# 给logger添加handler
+logger.addHandler(fh)
+#logger.addHandler(ch)
+
+# 记录一条日志
+#logger.info('foorbar')
+
 
 
 def LoginPageFromIE():
@@ -51,11 +77,13 @@ def LoginPageFromIE():
         ie.textBoxSet('email',USER) #account
         ie.textBoxSet('password', PWD) #pwd
         ie.formSubmit('fmLogin')
+        logger.info('try login')
     ie.navigate("http://epoint.pampers.com.cn/pages/redeem.aspx?p1=149")        
-    
+    logger.info('login ok')
     #print ie.cookieGet()
     # prepare to in
     ie.javaScriptExecute('javascript:alert("plese input the ASPXAUTH and ASP.net_Session")')
+    logger.info('input session info')
     #print 'input ASPXAUTH value'
     global ASPXAUTH
     ASPXAUTH = raw_input('ASPXAUTH=')
@@ -450,9 +478,19 @@ def initSubmit2(N):
 
     return ieclass
 
+def PrepareSubmit3(N):
+    ieclass = []
+    logger.info('open %d ie' %N)
+    for i in range(N):
+        ie = PAMIE()
+        ie.navigate("http://epoint.pampers.com.cn/pages/redeem.aspx?p1=149")
+        ieclass.append(ie)
+    return ieclass
+
 def validCode(ie):
     b_r = False
     code = ''
+    logger.info('to get the code')
     while not b_r:
         # to complete with ?ticket=value, must be same ticket to submit.
         #ie.linkClick('regCodeImg')
@@ -462,6 +500,7 @@ def validCode(ie):
         (b_r, data) = GetNumFromCode(GetPreImage(CodeFilter()))
         if not b_r: continue
         code = GetCode(data)
+    logger.info('the code is %s' %code)
     return code
     
 def fillCode(ieclass, code):
@@ -492,6 +531,16 @@ def submitThread(ieclass):
         threads[i].start()        
         time.sleep(10)
 
+def submitPage(ie,id):
+    logger.info('before thread %d submit' %id)
+    ie.buttonImageClick('ImgbtnRedeem')
+    logger.info('after thread %d submit' %id)
+    #time.sleep(10)
+
+def gobackPage(ie,id):
+    logger.info('before thread %d go back' %id)
+    ie.javaScriptExecute('history.back()')
+    logger.info('after thread %d go back' %id)
                 
             
 if __name__=='__main__':
@@ -536,11 +585,57 @@ if __name__=='__main__':
             p = threading.Thread(target=ThreadFunction, args=(i,))
             p.start()
             time.sleep(110/NTHREAD)
-    ie = LoginPageFromIE()
-    print NIE
-    while(True):
-        ieclass = initSubmit2(NIE)
-        code  = validCode(ie)
-        fillCode(ieclass,code)
-        submitThread(ieclass)
     
+    if False:
+        ie = LoginPageFromIE()
+        #ie = PAMIE()
+        print NIE
+        while(True):
+            ieclass = PrepareSubmit3(NIE)
+            code  = validCode(ie)
+            fillCode(ieclass,code)
+            submitThread(ieclass)
+
+    
+    if True:
+        logger.info('start')
+        ie = LoginPageFromIE()        
+        N = 3        
+        ieclass = PrepareSubmit3(N)
+
+        raw_input('wait for ie')
+        code = validCode(ie)
+        threads = []
+
+        logger.info('to fill the code')
+        for ie in ieclass:
+            ie.textBoxSet('uxTextBoxCode',code)
+            
+        logger.info('to start %d thread to submit' %N)
+        ii = 0
+        for ie in ieclass:
+            #ie.textBoxSet('uxTextBoxCode',code)
+            t = threading.Thread(target=submitPage,args=(ie,ii))
+            t.start()
+            ii += 1
+        
+        time.sleep(60)
+
+        ii = 0
+        for ie in ieclass:
+            #ie.textBoxSet('uxTextBoxCode',code)
+            t = threading.Thread(target=gobackPage,args=(ie,ii))
+            t.start()
+            ii += 1
+        
+        
+        if False:
+            for ie in ieclass:
+                ie.buttonImageClick('ImgbtnRedeem')
+                
+            for ie in ieclass:
+                ie.javaScriptExecute('history.back()')
+                    
+            for ie in ieclass:
+                ie.buttonImageClick('ImgbtnRedeem')
+
