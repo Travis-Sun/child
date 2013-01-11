@@ -1,0 +1,28 @@
+2013-01-04 18:06:41,082 - mylogger - INFO - start
+2013-01-04 18:09:02,684 - mylogger - INFO - login ok
+2013-01-04 18:09:54,900 - mylogger - INFO - input session info
+2013-01-04 18:10:10,859 - mylogger - INFO - open 3 ie
+2013-01-04 18:10:56,459 - mylogger - INFO - to get the code
+2013-01-04 18:11:27,706 - mylogger - INFO - the code is R04X
+2013-01-04 18:11:27,706 - mylogger - INFO - to fill the code
+2013-01-04 18:13:02,621 - mylogger - INFO - to start 3 thread to submit
+2013-01-04 18:13:02,622 - mylogger - INFO - before thread 0 submit
+2013-01-04 18:13:02,624 - mylogger - INFO - before thread 1 submit
+2013-01-04 18:13:02,624 - mylogger - INFO - before thread 2 submit
+2013-01-04 18:14:02,634 - mylogger - INFO - before thread 0 go back
+2013-01-04 18:14:02,634 - mylogger - INFO - before thread 1 go back
+2013-01-04 18:14:02,635 - mylogger - INFO - before thread 2 go back
+2013-01-04 18:40:13,309 - mylogger - INFO - start
+2013-01-04 18:42:34,052 - mylogger - INFO - login ok
+2013-01-04 18:43:05,591 - mylogger - INFO - input session info
+2013-01-04 18:43:23,155 - mylogger - INFO - open 3 ie
+2013-01-04 18:43:58,868 - mylogger - INFO - to get the code
+2013-01-04 18:45:04,069 - mylogger - INFO - the code is PD4D
+2013-01-04 18:45:04,069 - mylogger - INFO - to fill the code
+2013-01-04 18:46:39,257 - mylogger - INFO - to start 3 thread to submit
+2013-01-04 18:46:39,259 - mylogger - INFO - before thread 0 submit
+2013-01-04 18:46:39,259 - mylogger - INFO - before thread 1 submit
+2013-01-04 18:46:39,259 - mylogger - INFO - before thread 2 submit
+2013-01-04 18:47:39,263 - mylogger - INFO - before thread 0 go back
+2013-01-04 18:47:39,263 - mylogger - INFO - before thread 1 go back
+2013-01-04 18:47:39,265 - mylogger - INFO - before thread 2 go back
